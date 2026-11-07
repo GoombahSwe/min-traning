@@ -1,4 +1,4 @@
-# Min Träning v9 – testversion
+# Min Träning v9 – version
 
 En statisk, offline-kapabel träningsdagbok för GitHub Pages.
 
