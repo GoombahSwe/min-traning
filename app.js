@@ -72,4 +72,43 @@ $('exportData').onclick=()=>{const blob=new Blob([JSON.stringify({version:9,prof
 $('importData').onchange=async e=>{const file=e.target.files?.[0];if(!file)return;try{if(file.size>5e6)throw Error('Filen är för stor');const raw=JSON.parse(await file.text()),candidate=raw.profile||raw;if(!candidate||!Array.isArray(candidate.workouts)||!Array.isArray(candidate.weights))throw Error('Ogiltig säkerhetskopia');if(!confirm('Ersätta all nuvarande data med säkerhetskopian?'))return;db={...defaults,...candidate};for(const k of ['weights','workouts','programs','customActivities','favorites','meals'])if(!Array.isArray(db[k]))db[k]=[];draft=Array.isArray(raw.draft)?raw.draft:[];persist();persistDraft();visibility();renderAll();showTab('profile');notify('Säkerhetskopia återställd')}catch(err){notify('Import misslyckades: '+err.message)}finally{e.target.value=''}};
 function renderAll(){renderHome();renderWorkout();renderFood();renderHistory();renderProfile()}
 $('weightDate').value=today();$('workoutDate').value=today();$('foodDate').value=today();renderAll();visibility();
-if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+// Updates: check a small uncached version file and offer a deliberate refresh.
+const APP_VERSION='9.2';
+let updateRegistration=null;
+let updateAvailable=false;
+const updateBanner=document.getElementById('updateBanner');
+function versionGreater(remote,local){const a=String(remote).split('.').map(Number),b=String(local).split('.').map(Number);for(let i=0;i<Math.max(a.length,b.length);i++){if((a[i]||0)!==(b[i]||0))return (a[i]||0)>(b[i]||0)}return false}
+function showUpdate(){updateAvailable=true;updateBanner.hidden=false}
+async function checkForUpdate(){
+  if(!navigator.onLine)return;
+  try{
+    const response=await fetch('./version.json?check='+Date.now(),{cache:'no-store'});
+    if(response.ok){const remote=await response.json();if(versionGreater(remote.version,APP_VERSION))showUpdate()}
+  }catch(_e){}
+  try{if(updateRegistration)await updateRegistration.update()}catch(_e){}
+  if(updateRegistration?.waiting)showUpdate();
+}
+document.getElementById('applyUpdate').addEventListener('click',async()=>{
+  const btn=document.getElementById('applyUpdate');btn.disabled=true;btn.textContent='Uppdaterar…';
+  try{
+    if(updateRegistration){await updateRegistration.update();if(updateRegistration.waiting){updateRegistration.waiting.postMessage({type:'SKIP_WAITING'});await new Promise(resolve=>setTimeout(resolve,450))}}
+    // Cache-busting navigation leaves localStorage (workouts, food, profile) intact.
+    const url=new URL(location.href);url.searchParams.set('v',String(Date.now()));location.replace(url.href);
+  }catch(_e){btn.disabled=false;btn.textContent='Försök igen';notify('Kunde inte uppdatera just nu')}
+});
+if('serviceWorker' in navigator){
+  window.addEventListener('load',async()=>{
+    try{
+      updateRegistration=await navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'});
+      updateRegistration.addEventListener('updatefound',()=>{
+        const worker=updateRegistration.installing;
+        worker?.addEventListener('statechange',()=>{if(worker.state==='installed'&&navigator.serviceWorker.controller)showUpdate()});
+      });
+      await checkForUpdate();
+    }catch(_e){}
+  });
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkForUpdate()});
+  window.addEventListener('online',checkForUpdate);
+  setInterval(checkForUpdate,30*60*1000);
+}
+
