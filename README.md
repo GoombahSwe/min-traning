@@ -1,7 +1,5 @@
-# Min Träning v9.2
+Min Träning v9.3
 
-Nyheter: Uppdateringskontroll när appen öppnas, kommer tillbaka i förgrunden och ungefär var 30:e minut. När en ny version upptäcks visas knappen ”Uppdatera nu”. Den laddar om sidan utan att radera localStorage. Uppdaterad offline-cache.
+Nyhet: installationsförslag för Android och iPhone. När webbläsaren stöder installationsdialogen visas en installationsknapp. Annars visas instruktioner. Installationsrutan döljs i redan installerad app.
 
-Installera: Packa upp och ladda upp **alla filer direkt i GitHub-repots rot**, inklusive version.json och sw.js. Vänta på GitHub Pages-publicering.
-
-Observera: Den redan installerade gamla versionen kan behöva öppnas via vanlig Chrome med ?v=92 en gång för att hämta den nya uppdateringsfunktionen. Rensa inte webbplatsdata, då kan träningshistoriken gå förlorad.
+Ladda upp alla filer direkt till GitHub-repots rot och ersätt befintliga filer. Rensa inte webbplatsdata – träningsuppgifter sparas lokalt.

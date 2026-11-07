@@ -73,7 +73,7 @@ $('importData').onchange=async e=>{const file=e.target.files?.[0];if(!file)retur
 function renderAll(){renderHome();renderWorkout();renderFood();renderHistory();renderProfile()}
 $('weightDate').value=today();$('workoutDate').value=today();$('foodDate').value=today();renderAll();visibility();
 // Updates: check a small uncached version file and offer a deliberate refresh.
-const APP_VERSION='9.2';
+const APP_VERSION='9.3';
 let updateRegistration=null;
 let updateAvailable=false;
 const updateBanner=document.getElementById('updateBanner');
@@ -112,3 +112,31 @@ if('serviceWorker' in navigator){
   setInterval(checkForUpdate,30*60*1000);
 }
 
+
+// PWA installation: browser-controlled prompt, with platform-specific fallback.
+(()=>{
+ const banner=document.getElementById('installBanner');
+ const installBtn=document.getElementById('installApp');
+ const dismissBtn=document.getElementById('dismissInstall');
+ const help=document.getElementById('installHelp');
+ let deferredPrompt=null;
+ const standalone=()=>window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;
+ const mobile=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+ const dismissed=()=>{try{return sessionStorage.getItem('mintraning-install-dismissed')==='1'}catch{return false}};
+ function show(){if(!standalone()&&!dismissed()&&mobile)banner.hidden=false}
+ function hide(){banner.hidden=true}
+ function fallback(){
+   const ios=/iPhone|iPad|iPod/i.test(navigator.userAgent);
+   help.textContent=ios?'I Safari: tryck på Dela och välj ”Lägg till på hemskärmen”.':'I Chrome: tryck på menyn ⋮ och välj ”Installera app” eller ”Lägg till på startskärmen”.';
+   help.hidden=false;installBtn.textContent='Visa instruktioner';show();
+ }
+ window.addEventListener('beforeinstallprompt',event=>{event.preventDefault();deferredPrompt=event;installBtn.textContent='Installera appen';help.hidden=true;show()});
+ window.addEventListener('appinstalled',()=>{deferredPrompt=null;hide()});
+ installBtn.addEventListener('click',async()=>{
+   if(!deferredPrompt){fallback();return}
+   const prompt=deferredPrompt;deferredPrompt=null;
+   try{await prompt.prompt();const result=await prompt.userChoice;if(result.outcome==='accepted')hide();else fallback()}catch{fallback()}
+ });
+ dismissBtn.addEventListener('click',()=>{try{sessionStorage.setItem('mintraning-install-dismissed','1')}catch{}hide()});
+ if(standalone())hide();else if(mobile){fallback();}
+})();
