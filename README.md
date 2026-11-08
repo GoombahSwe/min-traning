@@ -1,5 +1,5 @@
-Min Träning v9.3
+Min Träning 0.9.4
 
-Nyhet: installationsförslag för Android och iPhone. När webbläsaren stöder installationsdialogen visas en installationsknapp. Annars visas instruktioner. Installationsrutan döljs i redan installerad app.
-
-Ladda upp alla filer direkt till GitHub-repots rot och ersätt befintliga filer. Rensa inte webbplatsdata – träningsuppgifter sparas lokalt.
+Ladda upp alla filer i roten av GitHub Pages-projektet.
+Nyheter: redigera avslutade pass, tydligare hopfällbar historik, redigera övningar i pågående pass.
+Säkerhetskopiera under Profil före uppdatering. Rensa inte webbplatsdata.
